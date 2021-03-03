@@ -19,7 +19,7 @@ The library is based on official AWS Glue repository https://github.com/awslabs/
 * create an env with python 3.7 (>=3.8 is not yet supported by pyspark) `virtualenv -p /usr/local/opt/python@3.7/bin/python3.7 env`
 * `source ./env/bin/activate`
 * install pyspark `pip3 install pyspark`. Make sure, that your pyspark version matches with your global Spark installation
-* copy `awsglue` to your working directory next to your ETL scripts. 
+* `git clone https://github.com/yarax/glue_local.git awsglue` in your ETL scripts directory
 * `python ./your_glue_script`
 
 ## How to map your cloud data locations with local ones
