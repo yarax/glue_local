@@ -5,6 +5,7 @@ import re
 from pyspark.context import SparkContext
 from pyspark.sql import SQLContext
 from .dynamicframe import DynamicFrame
+import logging
 spark = SparkSession \
     .builder \
     .appName("Python Spark SQL basic example") \
@@ -12,13 +13,13 @@ spark = SparkSession \
     .getOrCreate()
 
 class MockedClass:
-    def __init__(self, glueContextScope):
-        self.glueContextScope = glueContextScope
-        
+    def __init__(self, root):
+        self.root = root
+
     def from_catalog(self, database, table_name, redshift_tmp_dir = "", transformation_ctx = "", push_down_predicate = "", additional_options = {}, catalog_id = None, **kwargs):
-        print("db "  + database + " table: " + table_name)
-        path = os.path.join(os.getcwd(), "tests/source_data", database, table_name)
+        path = os.path.join(self.root, "source_data", database, table_name)
         return self.get_mocked_df(path)
+
     def get_mocked_df(self, path):
         df = None
         if os.path.isfile(path + ".json"):
@@ -31,12 +32,12 @@ class MockedClass:
 
 
 class Sink:
-    def __init__(self, connection_type, path, enableUpdateCatalog):
+    def __init__(self, connection_type, path, enableUpdateCatalog, root):
         self.checkFilePath(path)
-        # self.glueContextScope = glueContextScope
+        self.root = root
         
     def checkFilePath(self, path):
-        path = path.replace("s3://", "./")
+        path = path.replace("s3:/", self.root)
         self.path = path
         fng = re.search(r'\/([^\/]+)$', path)
         self.filename = fng.group(1)
@@ -61,14 +62,17 @@ class GlueContext(SparkContext):
     def __init__(self, SparkContext):
         self.sc = spark.sparkContext
         self.sqlc = SQLContext(self.sc)
-        self.create_dynamic_frame = MockedClass(self)
-        self.write_dynamic_frame = MockedClass(self)
-        #self.spark_session = SparkSession(self.sc, spark)
+        if ('GLUE_SOURCE_PATH' in os.environ):
+            self.root = os.environ['GLUE_SOURCE_PATH']
+        else:
+            self.root = os.path.join(os.getcwd(), "tests")
+            logging.warning("Environment variable GLUE_SOURCE_PATH was not found. Using default location: %s", self.root)
+        self.create_dynamic_frame = MockedClass(self.root)
+        self.write_dynamic_frame = MockedClass(self.root)
         self._glue_logger = Logger()
-        print("GlueContext init..")
 
     def getSink(self, connection_type, path, enableUpdateCatalog):
-        return Sink(connection_type, path, enableUpdateCatalog)
+        return Sink(connection_type, path, enableUpdateCatalog, self.root)
 
     def sql(self, query):
         return self.sqlc.sql(query)

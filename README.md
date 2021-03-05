@@ -26,8 +26,11 @@ The library is based on official AWS Glue repository https://github.com/awslabs/
 
 There are 2 possible ways to define your source data frame in Glue: `create_dynamic_frame_from_catalog` and `create_dynamic_frame_from_options`.
 
-* glue_context.create_dynamic_frame_from_catalog or glue_context.create_dynamic_frame.from_catalog - in this case your table is the file name inside of `data` directory next to your script. The database name will be skipped.
-* glue_context.create_dynamic_frame_from_options - in this case you have to provide an additional key for your `connection_options` parameter - `local_path: ./data/my_data_file` without extention (it will be detected automatically)
+* glue_context.create_dynamic_frame_from_catalog or glue_context.create_dynamic_frame.from_catalog - in this case your table is the file name inside of `./tests/source_data` directory next to your script. The database name will be skipped.
+* glue_context.create_dynamic_frame_from_options - in this case you have to provide an additional key for your `connection_options` parameter - `local_path: ./tests/source_data/my_data_file` without extention (it will be detected automatically)
+
+If you want to customise your source files location, you can use GLUE_SOURCE_PATH environment variable
+os.getcwd() "tests" source_data
 
 ## Restrictions
 
