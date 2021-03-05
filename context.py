@@ -1,5 +1,7 @@
 from pyspark.sql import SparkSession
+import os
 import os.path
+import re
 from pyspark.context import SparkContext
 from pyspark.sql import SQLContext
 from .dynamicframe import DynamicFrame
@@ -28,12 +30,21 @@ class MockedClass:
 
 
 class Sink:
+    def __init__(self, connection_type, path, enableUpdateCatalog):
+        self.checkFilePath(path)
+        self.glueContextScope = glueContextScope
+    def checkFilePath(path):
+        path = path.replace("s3://", "./")
+        self.path = path
+        fng = re.search(r'\/([^\/]+)$', path)
+        self.filename = fng.group(1)
+        os.makedirs(path.replace(self.filename, ""))
     def setCatalogInfo(self, catalogDatabase, catalogTableName):
-        print("invoking setCatalogInfo..")
+        print("skipping setCatalogInfo..")
     def setFormat(self, format):
-        print("invoking setFormat..")
+        self.format = format
     def writeFrame(self, df):
-        print("invoking writeFrame..")
+        df.write.format(self.format).save(self.path)
 
 class Logger:
     def info(self, str):
@@ -55,7 +66,7 @@ class GlueContext(SparkContext):
         print("GlueContext init..")
 
     def getSink(self, connection_type, path, enableUpdateCatalog):
-        return Sink()
+        return Sink(connection_type, path, enableUpdateCatalog)
 
     def sql(self, query):
         return self.sqlc.sql(query)

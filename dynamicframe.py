@@ -1,7 +1,7 @@
 class DynamicFrame:
     @staticmethod
     def fromDF(df, glueContext, ctx):
-        print("invoking fromDF..")
+        return df
     
     # def __init__(self, path, action, target=None):
     #     print("__init__ is not implemented")
