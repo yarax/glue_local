@@ -14,9 +14,10 @@ spark = SparkSession \
 class MockedClass:
     def __init__(self, glueContextScope):
         self.glueContextScope = glueContextScope
+        
     def from_catalog(self, database, table_name, redshift_tmp_dir = "", transformation_ctx = "", push_down_predicate = "", additional_options = {}, catalog_id = None, **kwargs):
         print("db "  + database + " table: " + table_name)
-        path = "./data/" + table_name
+        path = os.path.join(os.getcwd(), "tests/source_data", database, table_name)
         return self.get_mocked_df(path)
     def get_mocked_df(self, path):
         df = None
@@ -25,15 +26,16 @@ class MockedClass:
         if os.path.isfile(path + ".parquet"):
             df = spark.read.parquet(path + ".parquet")
         if df is None:
-            raise Exception('None of json or parquet files with a given name were found in the ./data folder') 
+            raise Exception(f'None of json or parquet files with a given name were found in the {path} folder') 
         return DynamicFrame(df)
 
 
 class Sink:
     def __init__(self, connection_type, path, enableUpdateCatalog):
         self.checkFilePath(path)
-        self.glueContextScope = glueContextScope
-    def checkFilePath(path):
+        # self.glueContextScope = glueContextScope
+        
+    def checkFilePath(self, path):
         path = path.replace("s3://", "./")
         self.path = path
         fng = re.search(r'\/([^\/]+)$', path)
