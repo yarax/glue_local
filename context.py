@@ -32,7 +32,7 @@ class MockedClass:
 
 
 class Sink:
-    def __init__(self, connection_type, path, enableUpdateCatalog, root):
+    def __init__(self, connection_type, path, enableUpdateCatalog, partitionKeys, root):
         self.checkFilePath(path)
         self.root = root
         
@@ -71,8 +71,8 @@ class GlueContext(SparkContext):
         self.write_dynamic_frame = MockedClass(self.root)
         self._glue_logger = Logger()
 
-    def getSink(self, connection_type, path, enableUpdateCatalog):
-        return Sink(connection_type, path, enableUpdateCatalog, self.root)
+    def getSink(self, connection_type, path, enableUpdateCatalog, partitionKeys):
+        return Sink(connection_type, path, enableUpdateCatalog, partitionKeys, self.root)
 
     def sql(self, query):
         return self.sqlc.sql(query)
