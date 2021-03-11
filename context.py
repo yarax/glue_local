@@ -33,21 +33,22 @@ class MockedClass:
 
 class Sink:
     def __init__(self, connection_type, path, enableUpdateCatalog, partitionKeys, root):
-        self.checkFilePath(path)
         self.root = root
+        self.checkFilePath(path)
         
     def checkFilePath(self, path):
         path = path.replace("s3:/", self.root)
         self.path = path
         fng = re.search(r'\/([^\/]+)$', path)
         self.filename = fng.group(1)
-        os.makedirs(path.replace(self.filename, ""))
+        os.makedirs(path.replace(self.filename, ""), exist_ok=True)
     def setCatalogInfo(self, catalogDatabase, catalogTableName):
         print("skipping setCatalogInfo..")
     def setFormat(self, format):
         self.format = format
     def writeFrame(self, df):
-        df.write.format(self.format).save(self.path)
+        # this must be json because glueparquet format is not supported locally
+        df.write.format("json").save(self.path)
 
 class Logger:
     def info(self, str):
